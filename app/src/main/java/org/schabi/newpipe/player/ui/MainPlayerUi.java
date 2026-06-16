@@ -247,6 +247,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     @Override
     public void destroyPlayer() {
         super.destroyPlayer();
+        stopSecondarySubtitle();
 
         if (playQueueAdapter != null) {
             playQueueAdapter.unsetSelectedListener();
@@ -289,6 +290,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         binding.openInBrowser.setVisibility(View.VISIBLE);
         binding.switchMute.setVisibility(View.VISIBLE);
         binding.playerCloseButton.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
+        binding.secondCaptionTextView.setVisibility(View.VISIBLE);
         // Top controls have a large minHeight which is allows to drag the player
         // down in fullscreen mode (just larger area to make easy to locate by finger)
         binding.topControls.setClickable(true);

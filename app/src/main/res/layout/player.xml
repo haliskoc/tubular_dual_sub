@@ -28,6 +28,15 @@
         android:layout_centerInParent="true"
         android:layout_gravity="center" />
 
+    <com.google.android.exoplayer2.ui.SubtitleView
+        android:id="@+id/secondarySubtitleView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="56dp"
+        android:gravity="center_horizontal|top"
+        android:paddingBottom="140dp" />
+
     <View
         android:id="@+id/playerTopShadow"
         android:layout_width="match_parent"
@@ -319,6 +328,28 @@
                             tools:ignore="RelativeOverlap,RtlHardcoded"
                             tools:text="English" />
 
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3">
+
+                        <org.schabi.newpipe.views.NewPipeTextView
+                            android:id="@+id/secondCaptionTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:ellipsize="end"
+                            android:gravity="center|left"
+                            android:lines="1"
+                            android:minWidth="50dp"
+                            android:minHeight="35dp"
+                            android:padding="@dimen/player_main_buttons_padding"
+                            android:textColor="@android:color/white"
+                            android:textStyle="bold"
+                            tools:text="2nd: None" />
                     </FrameLayout>
 
                     <androidx.appcompat.widget.AppCompatImageButton

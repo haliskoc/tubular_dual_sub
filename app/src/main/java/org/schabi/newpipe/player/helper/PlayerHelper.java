@@ -347,6 +347,19 @@ public final class PlayerHelper {
         return captioningManager.getFontScale();
     }
 
+    @Nullable
+    public static String getSecondCaptionDefault(@NonNull final Context context) {
+        final String value = getPreferences(context).getString(
+                context.getString(R.string.second_caption_default_key), "");
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        if ("system".equals(value)) {
+            return Locale.getDefault().getLanguage();
+        }
+        return value;
+    }
+
     /**
      * @param context the Android context
      * @return the screen brightness to use. A value less than 0 (the default) means to use the

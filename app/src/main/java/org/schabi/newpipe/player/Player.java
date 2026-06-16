@@ -117,6 +117,7 @@ import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
 import org.schabi.newpipe.player.resolver.AudioPlaybackResolver;
 import org.schabi.newpipe.player.resolver.VideoPlaybackResolver;
 import org.schabi.newpipe.player.resolver.VideoPlaybackResolver.SourceType;
+import org.schabi.newpipe.player.subtitle.SubtitleRepository;
 import org.schabi.newpipe.player.ui.BackgroundPlayerUi;
 import org.schabi.newpipe.player.ui.MainPlayerUi;
 import org.schabi.newpipe.player.ui.PlayerUi;
@@ -228,6 +229,8 @@ public final class Player implements PlaybackListener, Listener {
     private final VideoPlaybackResolver videoResolver;
     @NonNull
     private final AudioPlaybackResolver audioResolver;
+    @NonNull
+    private final SubtitleRepository subtitleRepository = new SubtitleRepository();
 
     private final PlayerService service; //TODO try to remove and replace everything with context
 
@@ -727,6 +730,7 @@ public final class Player implements PlaybackListener, Listener {
 
         destroyPlayer();
         unregisterBroadcastReceiver();
+        subtitleRepository.clear();
 
         databaseUpdateDisposable.clear();
         progressUpdateDisposable.set(null);
@@ -1635,6 +1639,7 @@ public final class Player implements PlaybackListener, Listener {
             case DISCONTINUITY_REASON_SKIP:
                 break; // only makes Android Studio linter happy, as there are no ads
         }
+        UIs.call(PlayerUi::onSeekProcessed);
     }
 
     @Override
@@ -2590,6 +2595,11 @@ public final class Player implements PlaybackListener, Listener {
     @NonNull
     public DefaultTrackSelector getTrackSelector() {
         return trackSelector;
+    }
+
+    @NonNull
+    public SubtitleRepository getSubtitleRepository() {
+        return subtitleRepository;
     }
 
     @Nullable

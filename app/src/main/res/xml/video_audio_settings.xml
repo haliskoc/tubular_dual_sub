@@ -126,6 +126,17 @@
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            android:defaultValue=""
+            android:entries="@array/second_caption_language_names"
+            android:entryValues="@array/second_caption_language_codes"
+            android:key="@string/second_caption_default_key"
+            android:summary="@string/second_caption_default_summary"
+            android:title="@string/second_caption_default_title"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

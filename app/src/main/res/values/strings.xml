@@ -493,6 +493,15 @@
     <!-- Caption Settings -->
     <string name="caption_setting_title">Captions</string>
     <string name="caption_setting_description">Modify player caption text scale and background styles. Requires app restart to take effect</string>
+    <!-- Dual Subtitle / Second Caption -->
+    <string name="second_caption">Second Subtitle</string>
+    <string name="second_caption_none">None</string>
+    <string name="second_caption_system_language">System language</string>
+    <string name="second_caption_via_translate">%1$s (Translate)</string>
+    <string name="second_caption_load_error">Could not load second subtitle</string>
+    <string name="second_caption_translation_unavailable">Translation not available for this video</string>
+    <string name="second_caption_default_title">Default second subtitle language</string>
+    <string name="second_caption_default_summary">Language to automatically load as the secondary subtitle when starting a video</string>
     <!-- Debug Settings -->
     <string name="leak_canary_not_available">LeakCanary is not available</string>
     <string name="enable_leak_canary_summary">Memory leak monitoring may cause the app to become unresponsive when heap dumping</string>

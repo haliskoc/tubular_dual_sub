@@ -36,6 +36,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -58,6 +59,7 @@ import com.google.android.exoplayer2.Tracks;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.CaptionStyleCompat;
+import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.video.VideoSize;
 
 import org.schabi.newpipe.App;
@@ -66,6 +68,7 @@ import org.schabi.newpipe.databinding.PlayerBinding;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.fragments.detail.VideoDetailFragment;
 import org.schabi.newpipe.ktx.AnimationType;
@@ -87,9 +90,15 @@ import org.schabi.newpipe.util.external_communication.KoreUtils;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 import org.schabi.newpipe.views.player.PlayerFastSeekOverlay;
 
+import org.schabi.newpipe.player.subtitle.DualSubtitleSyncEngine;
+import org.schabi.newpipe.player.subtitle.SecondaryCaptionHelper;
+import org.schabi.newpipe.player.subtitle.SubtitleRepository;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBarChangeListener,
@@ -130,12 +139,15 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     private static final int POPUP_MENU_ID_AUDIO_TRACK = 70;
     private static final int POPUP_MENU_ID_PLAYBACK_SPEED = 79;
     private static final int POPUP_MENU_ID_CAPTION = 89;
+    private static final int POPUP_MENU_ID_SECONDARY_CAPTION = 90;
 
     protected boolean isSomePopupMenuVisible = false;
     private PopupMenu qualityPopupMenu;
     private PopupMenu audioTrackPopupMenu;
     protected PopupMenu playbackSpeedPopupMenu;
     private PopupMenu captionPopupMenu;
+    private PopupMenu secondCaptionPopupMenu;
+    private DualSubtitleSyncEngine secondarySyncEngine;
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -172,6 +184,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
     private void initViews() {
         setupSubtitleView();
+        setupSecondarySubtitleView();
 
         binding.resizeTextView
                 .setText(PlayerHelper.resizeTypeOf(context, binding.surfaceView.getResizeMode()));
@@ -188,6 +201,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         audioTrackPopupMenu = new PopupMenu(themeWrapper, binding.audioTrackTextView);
         playbackSpeedPopupMenu = new PopupMenu(context, binding.playbackSpeed);
         captionPopupMenu = new PopupMenu(themeWrapper, binding.captionTextView);
+        secondCaptionPopupMenu = new PopupMenu(context,
+                binding.secondCaptionTextView);
 
         binding.progressBarLoadingPanel.getIndeterminateDrawable()
                 .setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
@@ -209,6 +224,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         binding.playbackSeekBar.setOnSeekBarChangeListener(this);
         binding.captionTextView.setOnClickListener(makeOnClickListener(this::onCaptionClicked));
+        binding.secondCaptionTextView.setOnClickListener(
+                makeOnClickListener(this::onSecondaryCaptionClicked));
         binding.resizeTextView.setOnClickListener(makeOnClickListener(this::onResizeClicked));
         binding.playbackLiveSync.setOnClickListener(makeOnClickListener(player::seekToDefault));
 
@@ -287,6 +304,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.playbackSpeed.setOnClickListener(null);
         binding.playbackSeekBar.setOnSeekBarChangeListener(null);
         binding.captionTextView.setOnClickListener(null);
+        binding.secondCaptionTextView.setOnClickListener(null);
         binding.resizeTextView.setOnClickListener(null);
         binding.playbackLiveSync.setOnClickListener(null);
 
@@ -1440,6 +1458,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
         binding.captionTextView.setVisibility(
                 availableLanguages.isEmpty() ? View.GONE : View.VISIBLE);
+
+        // Rebuild secondary caption menu
+        @Nullable final StreamInfo currentInfo =
+                player.getCurrentStreamInfo().orElse(null);
+        buildSecondaryCaptionMenu(currentInfo);
     }
 
     @Override
@@ -1460,6 +1483,210 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
      * @param captionScale Value returned by {@link PlayerHelper#getCaptionScale}.
      */
     protected abstract void setupSubtitleView(float captionScale);
+    //endregion
+
+
+    /*//////////////////////////////////////////////////////////////////////////
+    // Secondary Captions (Dual Subtitles)
+    //////////////////////////////////////////////////////////////////////////*/
+    //region Secondary Captions
+
+    private void setupSecondarySubtitleView() {
+        final float primaryScale = PlayerHelper.getCaptionScale(context);
+        final float secondaryScale = primaryScale * 0.85f;
+        binding.secondarySubtitleView.setFractionalTextSize(
+                SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * secondaryScale);
+        final CaptionStyleCompat captionStyle = PlayerHelper.getCaptionStyle(context);
+        binding.secondarySubtitleView.setApplyEmbeddedStyles(
+                captionStyle == CaptionStyleCompat.DEFAULT);
+        binding.secondarySubtitleView.setStyle(captionStyle);
+    }
+
+    private void buildSecondaryCaptionMenu(@Nullable final StreamInfo streamInfo) {
+        if (secondCaptionPopupMenu == null || streamInfo == null) {
+            return;
+        }
+
+        secondCaptionPopupMenu.getMenu().removeGroup(POPUP_MENU_ID_SECONDARY_CAPTION);
+        secondCaptionPopupMenu.setOnDismissListener(this);
+
+        // Item 0: None
+        final MenuItem noneItem = secondCaptionPopupMenu.getMenu().add(
+                POPUP_MENU_ID_SECONDARY_CAPTION, 0, Menu.NONE,
+                R.string.second_caption_none);
+        noneItem.setOnMenuItemClickListener(mi -> {
+            stopSecondarySubtitle();
+            return true;
+        });
+
+        final java.util.List<SubtitlesStream> streams =
+                streamInfo.getSubtitles();
+        if (streams == null || streams.isEmpty()) {
+            binding.secondCaptionTextView.setVisibility(View.GONE);
+            return;
+        }
+        binding.secondCaptionTextView.setVisibility(View.VISIBLE);
+
+        // Items 1..N: Available native languages
+        int menuIndex = 1;
+        final java.util.Set<String> nativeTags = new java.util.HashSet<>();
+        for (final SubtitlesStream stream : streams) {
+            final String lang = PlayerHelper.captionLanguageOf(context, stream);
+            nativeTags.add(stream.getLanguageTag());
+            final String tag = stream.getLanguageTag();
+            final MenuItem item = secondCaptionPopupMenu.getMenu().add(
+                    POPUP_MENU_ID_SECONDARY_CAPTION, menuIndex++, Menu.NONE, lang);
+            item.setOnMenuItemClickListener(mi -> {
+                onSecondaryLanguageSelected(streamInfo, tag, false);
+                return true;
+            });
+        }
+
+        // Items N+1..: Translation targets
+        final SubtitlesStream firstStream = streams.get(0);
+        for (final Map.Entry<String, String> entry :
+                SecondaryCaptionHelper.TRANSLATION_TARGETS.entrySet()) {
+            final String tag = entry.getKey();
+            final String name = entry.getValue();
+            if (nativeTags.contains(tag)) {
+                continue;
+            }
+            final MenuItem item = secondCaptionPopupMenu.getMenu().add(
+                    POPUP_MENU_ID_SECONDARY_CAPTION, menuIndex++, Menu.NONE,
+                    context.getString(R.string.second_caption_via_translate, name));
+            item.setOnMenuItemClickListener(mi -> {
+                onSecondaryLanguageSelected(streamInfo, tag, true);
+                return true;
+            });
+        }
+
+        // Apply default language from preferences on first load
+        final String defaultLang = PlayerHelper.getSecondCaptionDefault(context);
+        if (defaultLang != null && secondarySyncEngine == null) {
+            onSecondaryLanguageSelected(streamInfo, defaultLang,
+                    !nativeTags.contains(defaultLang));
+        }
+    }
+
+    private void onSecondaryCaptionClicked() {
+        secondCaptionPopupMenu.show();
+        isSomePopupMenuVisible = true;
+    }
+
+    private void onSecondaryLanguageSelected(
+            @NonNull final StreamInfo streamInfo,
+            @NonNull final String languageTag,
+            final boolean useTranslation) {
+
+        final java.util.List<SubtitlesStream> streams = streamInfo.getSubtitles();
+        if (streams == null || streams.isEmpty()) {
+            Toast.makeText(context, R.string.second_caption_load_error,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String url;
+        final String mimeType;
+
+        if (useTranslation) {
+            final SubtitlesStream sourceStream = streams.get(0);
+            url = SecondaryCaptionHelper.buildTranslatedUrl(sourceStream, languageTag);
+            mimeType = sourceStream.getFormat() != null
+                    ? sourceStream.getFormat().getMimeType() : null;
+        } else {
+            final SubtitlesStream match =
+                    SecondaryCaptionHelper.findStreamForLanguage(streams, languageTag);
+            if (match == null) {
+                Toast.makeText(context, R.string.second_caption_load_error,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            url = match.getContent();
+            mimeType = match.getFormat() != null
+                    ? match.getFormat().getMimeType() : null;
+        }
+
+        loadAndStartSecondarySubtitle(url, mimeType, languageTag);
+    }
+
+    private void loadAndStartSecondarySubtitle(
+            @NonNull final String url,
+            @Nullable final String mimeType,
+            @NonNull final String languageTag) {
+
+        final SubtitleRepository repo = player.getSubtitleRepository();
+
+        if (repo.hasCache(languageTag)) {
+            startSecondarySyncEngine(repo.getCuesSync(url, mimeType, languageTag)
+                    .getOrNull());
+            updateSecondaryCaptionLabel(languageTag);
+            return;
+        }
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+            try {
+                final Result<List<SubtitleCue>> result =
+                        repo.getCuesSync(url, mimeType, languageTag);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result.isSuccess()) {
+                        startSecondarySyncEngine(result.getOrNull());
+                        updateSecondaryCaptionLabel(languageTag);
+                    } else {
+                        Toast.makeText(context, R.string.second_caption_load_error,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (final Exception e) {
+                new Handler(Looper.getMainLooper()).post(() ->
+                        Toast.makeText(context, R.string.second_caption_load_error,
+                                Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    private void startSecondarySyncEngine(
+            @Nullable final java.util.List<SubtitleCue> cues) {
+        if (secondarySyncEngine == null) {
+            secondarySyncEngine = new DualSubtitleSyncEngine(
+                    player.getExoPlayer(), binding.secondarySubtitleView);
+        }
+        if (cues != null && !cues.isEmpty()) {
+            secondarySyncEngine.start(cues);
+        }
+    }
+
+    private void stopSecondarySubtitle() {
+        if (secondarySyncEngine != null) {
+            secondarySyncEngine.stop();
+        }
+        binding.secondCaptionTextView.setText(R.string.second_caption_none);
+    }
+
+    private void updateSecondaryCaptionLabel(@NonNull final String languageTag) {
+        final String display =
+                SecondaryCaptionHelper.TRANSLATION_TARGETS.get(languageTag);
+        if (display != null) {
+            binding.secondCaptionTextView.setText(display);
+        } else {
+            binding.secondCaptionTextView.setText(languageTag);
+        }
+    }
+
+    @Override
+    public void onPlaybackParametersChanged(
+            @NonNull final PlaybackParameters playbackParameters) {
+        if (secondarySyncEngine != null) {
+            secondarySyncEngine.onPlaybackSpeedChanged(playbackParameters.speed);
+        }
+    }
+
+    @Override
+    public void onSeekProcessed() {
+        if (secondarySyncEngine != null) {
+            secondarySyncEngine.onSeekProcessed();
+        }
+    }
+
     //endregion
 
 

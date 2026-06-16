@@ -179,6 +179,7 @@ public final class PopupPlayerUi extends VideoPlayerUi {
         binding.openInBrowser.setVisibility(View.GONE);
         binding.switchMute.setVisibility(View.GONE);
         binding.playerCloseButton.setVisibility(View.GONE);
+        binding.secondCaptionTextView.setVisibility(View.VISIBLE);
         binding.topControls.bringToFront();
         binding.topControls.setClickable(false);
         binding.topControls.setFocusable(false);
@@ -207,6 +208,7 @@ public final class PopupPlayerUi extends VideoPlayerUi {
     @Override
     public void destroy() {
         super.destroy();
+        stopSecondarySubtitle();
         removePopupFromView();
     }
     //endregion

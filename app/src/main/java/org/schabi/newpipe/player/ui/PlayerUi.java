@@ -172,6 +172,13 @@ public abstract class PlayerUi {
     }
 
     /**
+     * Called when the player seeks to a new position.
+     * @see com.google.android.exoplayer2.Player.Listener#onPositionDiscontinuity
+     */
+    public void onSeekProcessed() {
+    }
+
+    /**
      * @see com.google.android.exoplayer2.Player.Listener#onRenderedFirstFrame
      */
     public void onRenderedFirstFrame() {

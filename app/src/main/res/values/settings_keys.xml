@@ -334,6 +334,7 @@
     <!-- Caption Size -->
     <string name="caption_settings_key">caption_settings_key</string>
     <string name="caption_user_set_key">caption_user_set_key</string>
+    <string name="second_caption_default_key" translatable="false">second_caption_default_key</string>
 
     <!-- Main-Tabs Position -->
     <string name="main_tabs_position_key">main_tabs_position</string>
@@ -1623,4 +1624,39 @@
     <string name="return_youtube_dislike_override_like_count_key" translatable="false">return_youtube_dislike_override_like_count</string>
     <string name="return_youtube_dislike_override_view_count_key" translatable="false">return_youtube_dislike_override_view_count</string>
     <string name="return_youtube_dislike_show_dislikes_as_percentage_key" translatable="false">return_youtube_dislike_show_dislikes_as_percentage</string>
+
+    <!-- Dual Subtitle / Second Caption -->
+    <string-array name="second_caption_language_names">
+        <item>@string/second_caption_none</item>
+        <item>@string/second_caption_system_language</item>
+        <item>English</item>
+        <item>Türkçe</item>
+        <item>Deutsch</item>
+        <item>Français</item>
+        <item>Español</item>
+        <item>Русский</item>
+        <item>العربية</item>
+        <item>Português</item>
+        <item>Italiano</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>中文（简体）</item>
+    </string-array>
+
+    <string-array name="second_caption_language_codes">
+        <item></item>
+        <item>system</item>
+        <item>en</item>
+        <item>tr</item>
+        <item>de</item>
+        <item>fr</item>
+        <item>es</item>
+        <item>ru</item>
+        <item>ar</item>
+        <item>pt</item>
+        <item>it</item>
+        <item>ja</item>
+        <item>ko</item>
+        <item>zh-Hans</item>
+    </string-array>
 </resources>

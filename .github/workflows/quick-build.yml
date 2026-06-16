@@ -1,0 +1,68 @@
+name: "Quick Build (Push)"
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '*.md'
+      - 'doc/**'
+      - 'fastlane/**'
+      - 'assets/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: "Build APK"
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "temurin"
+          cache: 'gradle'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+
+      - run: chmod +x gradlew
+
+      - name: Build APK
+        run: ./gradlew assembleDebug --stacktrace -DskipFormatKtlint
+
+      - name: Get commit info
+        id: info
+        run: |
+          VERSION=$(grep 'versionName[[:space:]]*=' app/build.gradle.kts | grep -o '"[^"]*"' | head -n 1 | tr -d '"')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "branch=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: |
+          for f in app/build/outputs/apk/debug/*.apk; do
+            [ -f "$f" ] && mv "$f" "app/build/outputs/apk/debug/Tubular_${{ steps.info.outputs.version }}_${{ steps.info.outputs.sha }}_debug.apk"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tubular-${{ steps.info.outputs.branch }}-${{ steps.info.outputs.sha }}
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+      - name: Build Summary
+        run: |
+          echo "## :white_check_mark: Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ steps.info.outputs.branch }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ steps.info.outputs.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ steps.info.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| APK | [Download below](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
