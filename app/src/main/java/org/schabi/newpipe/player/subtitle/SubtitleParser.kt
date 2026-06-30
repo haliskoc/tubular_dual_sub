@@ -3,7 +3,6 @@ package org.schabi.newpipe.player.subtitle
 import java.io.BufferedReader
 import java.io.StringReader
 import org.jsoup.Jsoup
-import org.jsoup.parser.Parser as JsoupParser
 
 object SubtitleParser {
 
@@ -84,7 +83,7 @@ object SubtitleParser {
 
     private fun parseTtml(reader: BufferedReader): List<SubtitleCue> {
         val xml = reader.readText()
-        val doc = Jsoup.parse(xml, "", JsoupParser.xmlParser())
+        val doc = Jsoup.parse(xml, "", org.jsoup.parser.Parser.xmlParser())
         val cues = mutableListOf<SubtitleCue>()
 
         for (p in doc.select("p[begin][end]")) {

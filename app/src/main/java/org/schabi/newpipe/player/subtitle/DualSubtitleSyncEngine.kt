@@ -134,11 +134,9 @@ class DualSubtitleSyncEngine(
 fun SubtitleCue.toExoCues(): List<Cue> = listOf(
     Cue.Builder()
         .setText(text)
-        .setStartTimeUs(startMs * 1000)
-        .setEndTimeUs(endMs * 1000)
         .setLine(0.73f, Cue.LINE_TYPE_FRACTION)
         .setPosition(0.5f, Cue.ANCHOR_TYPE_MIDDLE)
-        .setTextAlignment(Cue.TEXT_ALIGNMENT_CENTER)
+        .setTextAlignment(android.text.Layout.Alignment.ALIGN_CENTER)
         .setLineAnchor(Cue.ANCHOR_TYPE_MIDDLE)
         .setSize(0.9f)
         .build()
