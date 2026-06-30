@@ -10,9 +10,7 @@ object TimestampParser {
         val trimmed = raw.trim()
         return when {
             trimmed.contains(":") -> parseClockFormat(trimmed)
-
             trimmed.matches(SECONDS_REGEX) -> parseSecondsFormat(trimmed)
-
             else -> trimmed.toLongOrNull() ?: 0L
         }
     }

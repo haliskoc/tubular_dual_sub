@@ -109,9 +109,7 @@ class DualSubtitleSyncEngine(
 
         return when {
             overlapping.isEmpty() -> -1
-
             overlapping.size == 1 -> overlapping[0]
-
             else -> overlapping.maxByOrNull { cues[it].endMs - positionMs } ?: overlapping[0]
         }
     }

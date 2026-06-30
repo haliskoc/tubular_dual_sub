@@ -28,11 +28,8 @@ object SubtitleParser {
 
     private fun detectFormat(mimeType: String?): Format = when {
         mimeType == null -> Format.UNKNOWN
-
         mimeType.contains("ttml", true) -> Format.TTML
-
         mimeType.contains("vtt", true) || mimeType.contains("text/") -> Format.VTT
-
         else -> Format.UNKNOWN
     }
 
