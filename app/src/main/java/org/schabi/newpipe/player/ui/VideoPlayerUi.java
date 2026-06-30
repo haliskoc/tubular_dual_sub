@@ -92,6 +92,7 @@ import org.schabi.newpipe.views.player.PlayerFastSeekOverlay;
 
 import org.schabi.newpipe.player.subtitle.DualSubtitleSyncEngine;
 import org.schabi.newpipe.player.subtitle.SecondaryCaptionHelper;
+import org.schabi.newpipe.player.subtitle.SubtitleCue;
 import org.schabi.newpipe.player.subtitle.SubtitleRepository;
 
 import java.util.List;
@@ -1626,19 +1627,23 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         final SubtitleRepository repo = player.getSubtitleRepository();
 
         if (repo.hasCache(languageTag)) {
-            startSecondarySyncEngine(repo.getCuesSync(url, mimeType, languageTag)
-                    .getOrNull());
-            updateSecondaryCaptionLabel(languageTag);
+            try {
+                startSecondarySyncEngine(repo.getCuesSync(url, mimeType, languageTag));
+                updateSecondaryCaptionLabel(languageTag);
+            } catch (final Exception e) {
+                Toast.makeText(context, R.string.second_caption_load_error,
+                        Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
-                final Result<List<SubtitleCue>> result =
+                final java.util.List<SubtitleCue> cues =
                         repo.getCuesSync(url, mimeType, languageTag);
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    if (result.isSuccess()) {
-                        startSecondarySyncEngine(result.getOrNull());
+                    if (cues != null && !cues.isEmpty()) {
+                        startSecondarySyncEngine(cues);
                         updateSecondaryCaptionLabel(languageTag);
                     } else {
                         Toast.makeText(context, R.string.second_caption_load_error,

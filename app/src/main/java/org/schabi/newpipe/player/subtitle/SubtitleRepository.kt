@@ -19,68 +19,52 @@ class SubtitleRepository {
         url: String,
         mimeType: String?,
         languageTag: String
-    ): Result<List<SubtitleCue>> {
-        cache[languageTag]?.let { return Result.success(it) }
+    ): List<SubtitleCue> {
+        cache[languageTag]?.let { return it }
 
         return withContext(Dispatchers.IO) {
-            try {
-                val request = Request.Builder().url(url).build()
-                val response = client.newCall(request).execute()
-
-                if (!response.isSuccessful) {
-                    return@withContext Result.failure(
-                        SubtitleLoadException("HTTP ${response.code}: ${response.message}")
-                    )
-                }
-
-                val body = response.body?.string()
-                    ?: return@withContext Result.failure(
-                        SubtitleLoadException("Empty response body")
-                    )
-
-                val cues = SubtitleParser.parse(body, mimeType)
-
-                if (cues.isEmpty()) {
-                    return@withContext Result.failure(
-                        SubtitleLoadException("Parsed subtitle list is empty")
-                    )
-                }
-
-                cache[languageTag] = cues
-                Result.success(cues)
-            } catch (e: Exception) {
-                Result.failure(SubtitleLoadException("Download/parse failed", e))
-            }
-        }
-    }
-
-    fun getCuesSync(url: String, mimeType: String?, languageTag: String): Result<List<SubtitleCue>> {
-        cache[languageTag]?.let { return Result.success(it) }
-
-        return try {
             val request = Request.Builder().url(url).build()
             val response = client.newCall(request).execute()
 
             if (!response.isSuccessful) {
-                return Result.failure(
-                    SubtitleLoadException("HTTP ${response.code}: ${response.message}")
-                )
+                throw SubtitleLoadException("HTTP ${response.code}: ${response.message}")
             }
 
             val body = response.body?.string()
-                ?: return Result.failure(SubtitleLoadException("Empty response body"))
+                ?: throw SubtitleLoadException("Empty response body")
 
             val cues = SubtitleParser.parse(body, mimeType)
 
             if (cues.isEmpty()) {
-                return Result.failure(SubtitleLoadException("Parsed subtitle list is empty"))
+                throw SubtitleLoadException("Parsed subtitle list is empty")
             }
 
             cache[languageTag] = cues
-            Result.success(cues)
-        } catch (e: Exception) {
-            Result.failure(SubtitleLoadException("Download/parse failed", e))
+            cues
         }
+    }
+
+    fun getCuesSync(url: String, mimeType: String?, languageTag: String): List<SubtitleCue> {
+        cache[languageTag]?.let { return it }
+
+        val request = Request.Builder().url(url).build()
+        val response = client.newCall(request).execute()
+
+        if (!response.isSuccessful) {
+            throw SubtitleLoadException("HTTP ${response.code}: ${response.message}")
+        }
+
+        val body = response.body?.string()
+            ?: throw SubtitleLoadException("Empty response body")
+
+        val cues = SubtitleParser.parse(body, mimeType)
+
+        if (cues.isEmpty()) {
+            throw SubtitleLoadException("Parsed subtitle list is empty")
+        }
+
+        cache[languageTag] = cues
+        return cues
     }
 
     fun clear() {
