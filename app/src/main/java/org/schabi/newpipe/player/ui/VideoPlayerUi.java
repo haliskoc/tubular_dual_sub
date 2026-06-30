@@ -1545,8 +1545,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         // Items N+1..: Translation targets
         final SubtitlesStream firstStream = streams.get(0);
-        for (final Map.Entry<String, String> entry :
-                SecondaryCaptionHelper.TRANSLATION_TARGETS.entrySet()) {
+        for (final Map.Entry<String, String> entry
+                : SecondaryCaptionHelper.TRANSLATION_TARGETS.entrySet()) {
             final String tag = entry.getKey();
             final String name = entry.getValue();
             if (nativeTags.contains(tag)) {

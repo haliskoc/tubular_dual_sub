@@ -1,9 +1,9 @@
 package org.schabi.newpipe.player.subtitle
 
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser as JsoupParser
 import java.io.BufferedReader
 import java.io.StringReader
+import org.jsoup.Jsoup
+import org.jsoup.parser.Parser as JsoupParser
 
 object SubtitleParser {
 
@@ -12,7 +12,9 @@ object SubtitleParser {
     fun parse(body: String, mimeType: String?): List<SubtitleCue> {
         return when (detectFormat(mimeType)) {
             Format.VTT -> parseVtt(BufferedReader(StringReader(body)))
+
             Format.TTML -> parseTtml(BufferedReader(StringReader(body)))
+
             Format.UNKNOWN -> {
                 val cues = try {
                     parseVtt(BufferedReader(StringReader(body)))
@@ -26,8 +28,11 @@ object SubtitleParser {
 
     private fun detectFormat(mimeType: String?): Format = when {
         mimeType == null -> Format.UNKNOWN
+
         mimeType.contains("ttml", true) -> Format.TTML
+
         mimeType.contains("vtt", true) || mimeType.contains("text/") -> Format.VTT
+
         else -> Format.UNKNOWN
     }
 
@@ -49,10 +54,9 @@ object SubtitleParser {
                     }
                     state = 0
                 }
-                // Cue with no timestamp (skip)
+
                 state == 0 && !trimmed.contains("-->") -> { /* skip ID line */ }
 
-                // Timestamp line
                 trimmed.contains("-->") -> {
                     val parts = trimmed.split(Regex("\\s*-->\\s*"), limit = 2)
                     if (parts.size == 2) {
@@ -63,11 +67,11 @@ object SubtitleParser {
                     }
                 }
 
-                // Text content
                 state == 1 -> {
                     textBuilder.append(Jsoup.parse(trimmed).text())
                     state = 2
                 }
+
                 state == 2 && trimmed.isNotEmpty() -> {
                     textBuilder.append("\n").append(Jsoup.parse(trimmed).text())
                 }

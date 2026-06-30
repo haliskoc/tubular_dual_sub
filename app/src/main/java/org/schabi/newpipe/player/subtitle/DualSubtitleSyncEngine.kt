@@ -3,6 +3,7 @@ package org.schabi.newpipe.player.subtitle
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.ui.SubtitleView
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -10,7 +11,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.math.max
 
 class DualSubtitleSyncEngine(
     private val exoPlayer: ExoPlayer,
@@ -109,7 +109,9 @@ class DualSubtitleSyncEngine(
 
         return when {
             overlapping.isEmpty() -> -1
+
             overlapping.size == 1 -> overlapping[0]
+
             else -> overlapping.maxByOrNull { cues[it].endMs - positionMs } ?: overlapping[0]
         }
     }

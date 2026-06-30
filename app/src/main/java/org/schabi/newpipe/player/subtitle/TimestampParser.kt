@@ -10,7 +10,9 @@ object TimestampParser {
         val trimmed = raw.trim()
         return when {
             trimmed.contains(":") -> parseClockFormat(trimmed)
+
             trimmed.matches(SECONDS_REGEX) -> parseSecondsFormat(trimmed)
+
             else -> trimmed.toLongOrNull() ?: 0L
         }
     }
@@ -26,15 +28,18 @@ object TimestampParser {
                     parts[1].toLong() * 60_000 +
                     parts[2].toLong() * 1_000 + frameMillis
             }
+
             3 -> {
                 val subseconds = (lastPart.toDouble() * 1000).toLong()
                 parts[0].toLong() * 3_600_000 +
                     parts[1].toLong() * 60_000 + subseconds
             }
+
             2 -> {
                 val subseconds = (lastPart.toDouble() * 1000).toLong()
                 parts[0].toLong() * 60_000 + subseconds
             }
+
             else -> 0L
         }
     }
