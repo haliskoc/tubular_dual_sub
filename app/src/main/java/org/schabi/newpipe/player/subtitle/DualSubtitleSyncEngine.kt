@@ -1,11 +1,10 @@
 package org.schabi.newpipe.player.subtitle
 
-import com.google.android.exoplayer2.Cue
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.ui.SubtitleView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay

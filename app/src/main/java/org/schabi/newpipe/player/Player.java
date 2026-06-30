@@ -232,6 +232,9 @@ public final class Player implements PlaybackListener, Listener {
     @NonNull
     private final SubtitleRepository subtitleRepository = new SubtitleRepository();
 
+    @NonNull
+    private String selectedSecondaryLanguage = "uninitialized";
+
     private final PlayerService service; //TODO try to remove and replace everything with context
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -2600,6 +2603,15 @@ public final class Player implements PlaybackListener, Listener {
     @NonNull
     public SubtitleRepository getSubtitleRepository() {
         return subtitleRepository;
+    }
+
+    @NonNull
+    public String getSelectedSecondaryLanguage() {
+        return selectedSecondaryLanguage;
+    }
+
+    public void setSelectedSecondaryLanguage(@NonNull final String language) {
+        this.selectedSecondaryLanguage = language;
     }
 
     @Nullable

@@ -1560,11 +1560,19 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             });
         }
 
-        // Apply default language from preferences on first load
-        final String defaultLang = PlayerHelper.getSecondCaptionDefault(context);
-        if (defaultLang != null && secondarySyncEngine == null) {
-            onSecondaryLanguageSelected(streamInfo, defaultLang,
-                    !nativeTags.contains(defaultLang));
+        // Restore previously active language (survives rotation) or fallback to default
+        String activeLang = player.getSelectedSecondaryLanguage();
+        if ("uninitialized".equals(activeLang)) {
+            activeLang = PlayerHelper.getSecondCaptionDefault(context);
+            if (activeLang == null) {
+                activeLang = ""; // None
+            }
+            player.setSelectedSecondaryLanguage(activeLang);
+        }
+
+        if (activeLang != null && !activeLang.isEmpty() && secondarySyncEngine == null) {
+            onSecondaryLanguageSelected(streamInfo, activeLang,
+                    !nativeTags.contains(activeLang));
         }
     }
 
@@ -1607,6 +1615,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
 
         loadAndStartSecondarySubtitle(url, mimeType, languageTag);
+        player.setSelectedSecondaryLanguage(languageTag);
     }
 
     private void loadAndStartSecondarySubtitle(
@@ -1659,6 +1668,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (secondarySyncEngine != null) {
             secondarySyncEngine.stop();
         }
+        player.setSelectedSecondaryLanguage(""); // None
         binding.secondCaptionTextView.setText(R.string.second_caption_none);
     }
 

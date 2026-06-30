@@ -4,8 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.BufferedReader
-import java.io.StringReader
 import java.util.concurrent.TimeUnit
 
 class SubtitleRepository {
@@ -40,8 +38,7 @@ class SubtitleRepository {
                         SubtitleLoadException("Empty response body")
                     )
 
-                val reader = BufferedReader(StringReader(body))
-                val cues = SubtitleParser.parse(reader, mimeType)
+                val cues = SubtitleParser.parse(body, mimeType)
 
                 if (cues.isEmpty()) {
                     return@withContext Result.failure(
@@ -73,8 +70,7 @@ class SubtitleRepository {
             val body = response.body?.string()
                 ?: return Result.failure(SubtitleLoadException("Empty response body"))
 
-            val reader = BufferedReader(StringReader(body))
-            val cues = SubtitleParser.parse(reader, mimeType)
+            val cues = SubtitleParser.parse(body, mimeType)
 
             if (cues.isEmpty()) {
                 return Result.failure(SubtitleLoadException("Parsed subtitle list is empty"))

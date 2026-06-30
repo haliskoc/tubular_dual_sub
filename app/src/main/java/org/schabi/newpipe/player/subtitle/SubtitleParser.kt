@@ -3,22 +3,23 @@ package org.schabi.newpipe.player.subtitle
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser as JsoupParser
 import java.io.BufferedReader
+import java.io.StringReader
 
 object SubtitleParser {
 
     enum class Format { VTT, TTML, UNKNOWN }
 
-    fun parse(input: BufferedReader, mimeType: String?): List<SubtitleCue> {
+    fun parse(body: String, mimeType: String?): List<SubtitleCue> {
         return when (detectFormat(mimeType)) {
-            Format.VTT -> parseVtt(input)
-            Format.TTML -> parseTtml(input)
+            Format.VTT -> parseVtt(BufferedReader(StringReader(body)))
+            Format.TTML -> parseTtml(BufferedReader(StringReader(body)))
             Format.UNKNOWN -> {
                 val cues = try {
-                    parseVtt(input)
+                    parseVtt(BufferedReader(StringReader(body)))
                 } catch (_: Exception) {
                     emptyList()
                 }
-                if (cues.isEmpty()) parseTtml(input) else cues
+                if (cues.isEmpty()) parseTtml(BufferedReader(StringReader(body))) else cues
             }
         }
     }
