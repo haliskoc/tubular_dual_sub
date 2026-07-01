@@ -1,4 +1,4 @@
-# Tubular with Dual Subtitles 🎧📺
+# Tubular with Dual Subtitles 
 
 <p align="center">
   <img src="assets/banner.png" alt="Tubular Banner" width="100%" style="border-radius: 12px; max-width: 600px; display: block; margin: 0 auto;" onerror="this.style.display='none'">
@@ -8,7 +8,7 @@
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 * **Simultaneous Dual Subtitles:** Displays a secondary subtitle track positioned perfectly above the primary track. Both tracks are fully readable and do not overlap.
 * **Zero-Cost Auto-Translation:** If a secondary language is not natively uploaded to the video, Tubular dynamically requests YouTube's auto-translated subtitle stream (by appending `&tlang=`) directly from YouTube's servers—completely free, with no translation APIs needed.
@@ -23,7 +23,7 @@
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```mermaid
 graph TD
@@ -41,7 +41,7 @@ graph TD
 
 ---
 
-## 🔧 Build & CI/CD Setup
+##  Build & CI/CD Setup
 
 We use GitHub Actions to automate linting, checkstyle validation, and compiling. This allows you to compile the app without installing the Android SDK locally.
 
@@ -56,13 +56,13 @@ To download the compiled APK:
 
 ---
 
-## 🛡️ License
+##  License
 
 This project is licensed under the **GNU GPLv3** license. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🤝 Credits
+##  Credits
 
 * **NewPipe** - The original lightweight YouTube client for Android.
 * **Tubular** - The SponsorBlock & ReturnYouTubeDislike fork.
