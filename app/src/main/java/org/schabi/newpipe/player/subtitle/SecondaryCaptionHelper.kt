@@ -49,4 +49,3 @@ object SecondaryCaptionHelper {
         return "$baseUrl${separator}tlang=$targetLanguageTag"
     }
 }
-
