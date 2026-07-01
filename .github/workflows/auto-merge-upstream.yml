@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
 
     steps:
       - name: Checkout repository
@@ -31,17 +32,68 @@ jobs:
       - name: Check for new updates
         id: check
         run: |
-          # Count how many commits upstream/master has that are not in our branch
           COMMITS_AHEAD=$(git log HEAD..upstream/master --oneline | wc -l)
           echo "commits_ahead=${COMMITS_AHEAD}" >> $GITHUB_OUTPUT
           echo "Found ${COMMITS_AHEAD} new commits in upstream/master"
 
-      - name: Merge upstream/master
+      - name: Try merge upstream/master
+        id: merge
         if: steps.check.outputs.commits_ahead > 0
         run: |
-          git merge upstream/master -m "chore: auto-merge upstream/master updates"
+          git merge upstream/master --no-commit -m "chore: auto-merge upstream/master updates" 2>&1 || {
+            echo "MERGE_CONFLICT=true" >> $GITHUB_OUTPUT
+            git merge --abort
+            echo "Aborted merge due to conflicts." >&2
+            exit 1
+          }
+          echo "MERGE_CONFLICT=false" >> $GITHUB_OUTPUT
+
+      - name: Commit merge
+        if: steps.check.outputs.commits_ahead > 0 && steps.merge.outputs.MERGE_CONFLICT == 'false'
+        run: |
+          git commit -m "chore: auto-merge upstream/master updates"
 
       - name: Push changes
-        if: steps.check.outputs.commits_ahead > 0
+        if: steps.check.outputs.commits_ahead > 0 && steps.merge.outputs.MERGE_CONFLICT == 'false'
         run: |
           git push origin feature/dual-subtitles
+
+      - name: Create issue on conflict
+        if: failure() && steps.check.outputs.commits_ahead > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['merge-conflict']
+            });
+            if (existing.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Upstream merge conflict detected',
+                labels: ['merge-conflict'],
+                body: 'Auto-merge from `polymorphicshade/Tubular` upstream failed due to merge conflicts.\n\n' +
+                      'Fix the conflicts locally:\n' +
+                      '```\n' +
+                      'git checkout feature/dual-subtitles\n' +
+                      'git remote add upstream https://github.com/polymorphicshade/Tubular.git\n' +
+                      'git fetch upstream master\n' +
+                      'git merge upstream/master\n' +
+                      '# Resolve conflicts, then:\n' +
+                      'git commit -m "chore: resolve upstream merge conflict"\n' +
+                      'git push origin feature/dual-subtitles\n' +
+                      '```\n\n' +
+                      'After resolving, close this issue and the next auto-merge run will succeed.'
+              });
+            }
+
+      - name: Mark conflict info in summary
+        if: failure() && steps.check.outputs.commits_ahead > 0
+        run: |
+          echo "## :x: Merge Conflict Detected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Auto-merge from upstream/master failed. A conflict issue has been created." >> $GITHUB_STEP_SUMMARY
+          echo "Resolve locally and push." >> $GITHUB_STEP_SUMMARY

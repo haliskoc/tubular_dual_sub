@@ -772,7 +772,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     private void setupTranscript() {
         transcriptAdapter = new org.schabi.newpipe.player.transcript.TranscriptAdapter(
                 (final Long positionMs) -> {
-                    if (player != null) {
+                    if (player != null && player.getExoPlayer() != null) {
                         player.getExoPlayer().seekTo(positionMs);
                     }
                     return kotlin.Unit.INSTANCE;
@@ -869,7 +869,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         final String finalTitle = title;
         final String finalUrl = url;
         final String finalUploader = uploader;
-        final long currentPosition = player != null
+        final long currentPosition = player != null && player.getExoPlayer() != null
                 ? player.getExoPlayer().getCurrentPosition() : 0;
 
         io.reactivex.rxjava3.core.Single.fromCallable(() -> {

@@ -42,7 +42,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    permissions: write-all
+    permissions:
+      contents: read
+      actions: write
+      checks: write
 
     steps:
       - name: Checkout
