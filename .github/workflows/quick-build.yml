@@ -43,7 +43,8 @@ jobs:
           VERSION=$(grep 'versionName[[:space:]]*=' app/build.gradle.kts | grep -o '"[^"]*"' | head -n 1 | tr -d '"')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "branch=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          CLEAN_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
+          echo "branch=${CLEAN_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Rename APK
         run: |
