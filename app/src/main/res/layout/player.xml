@@ -32,10 +32,7 @@
         android:id="@+id/secondarySubtitleView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:layout_marginBottom="56dp"
-        android:gravity="center_horizontal|top"
-        android:paddingBottom="140dp" />
+        android:layout_centerInParent="true" />
 
     <View
         android:id="@+id/playerTopShadow"
