@@ -1055,6 +1055,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     public void onPlaybackParametersChanged(@NonNull final PlaybackParameters playbackParameters) {
         super.onPlaybackParametersChanged(playbackParameters);
         binding.playbackSpeed.setText(formatSpeed(playbackParameters.speed));
+        if (secondarySyncEngine != null) {
+            secondarySyncEngine.onPlaybackSpeedChanged(playbackParameters.speed);
+        }
     }
 
     @Override
@@ -1669,7 +1672,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
     }
 
-    private void stopSecondarySubtitle() {
+    protected void stopSecondarySubtitle() {
         if (secondarySyncEngine != null) {
             secondarySyncEngine.stop();
         }
@@ -1687,13 +1690,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
     }
 
-    @Override
-    public void onPlaybackParametersChanged(
-            @NonNull final PlaybackParameters playbackParameters) {
-        if (secondarySyncEngine != null) {
-            secondarySyncEngine.onPlaybackSpeedChanged(playbackParameters.speed);
-        }
-    }
 
     @Override
     public void onSeekProcessed() {

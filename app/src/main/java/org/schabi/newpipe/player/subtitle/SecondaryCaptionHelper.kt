@@ -1,9 +1,12 @@
 package org.schabi.newpipe.player.subtitle
 
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 import org.schabi.newpipe.extractor.stream.SubtitlesStream
 
 object SecondaryCaptionHelper {
 
+    @JvmField
     val TRANSLATION_TARGETS = linkedMapOf(
         "tr" to "Turkish",
         "de" to "German",
@@ -18,6 +21,7 @@ object SecondaryCaptionHelper {
         "zh-Hans" to "Chinese (Simplified)"
     )
 
+    @JvmStatic
     fun findStreamForLanguage(
         streams: List<SubtitlesStream>,
         languageTag: String
@@ -35,6 +39,7 @@ object SecondaryCaptionHelper {
         return null
     }
 
+    @JvmStatic
     fun buildTranslatedUrl(
         sourceStream: SubtitlesStream,
         targetLanguageTag: String
@@ -44,3 +49,4 @@ object SecondaryCaptionHelper {
         return "$baseUrl${separator}tlang=$targetLanguageTag"
     }
 }
+
