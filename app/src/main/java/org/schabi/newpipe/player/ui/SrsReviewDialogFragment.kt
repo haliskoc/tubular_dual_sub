@@ -54,7 +54,6 @@ class SrsReviewDialogFragment : DialogFragment() {
                 binding.buttonShowAnswer.visibility = View.VISIBLE
 
                 if (callback != null && card.timestampMs > 0) {
-                    binding.textViewVideoLink.visibility = View.栄
                     binding.textViewVideoLink.visibility = View.VISIBLE
                     binding.textViewVideoLink.setOnClickListener {
                         callback?.onSeekTo(card.timestampMs)
