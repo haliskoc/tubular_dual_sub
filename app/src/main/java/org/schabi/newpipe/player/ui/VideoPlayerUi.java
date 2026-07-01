@@ -1634,6 +1634,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                 startSecondarySyncEngine(repo.getCuesSync(url, mimeType, languageTag));
                 updateSecondaryCaptionLabel(languageTag);
             } catch (final Exception e) {
+                Log.e("VideoPlayerUi", "Failed to load cached secondary subtitle", e);
                 Toast.makeText(context, R.string.second_caption_load_error,
                         Toast.LENGTH_SHORT).show();
             }
@@ -1649,11 +1650,13 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                         startSecondarySyncEngine(cues);
                         updateSecondaryCaptionLabel(languageTag);
                     } else {
+                        Log.e("VideoPlayerUi", "Loaded secondary cues are empty");
                         Toast.makeText(context, R.string.second_caption_load_error,
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (final Exception e) {
+                Log.e("VideoPlayerUi", "Failed to download secondary subtitle from url: " + url, e);
                 new Handler(Looper.getMainLooper()).post(() ->
                         Toast.makeText(context, R.string.second_caption_load_error,
                                 Toast.LENGTH_SHORT).show());
