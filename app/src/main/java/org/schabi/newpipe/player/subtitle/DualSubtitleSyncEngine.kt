@@ -22,10 +22,13 @@ class DualSubtitleSyncEngine(
     }
 
     private var scope: CoroutineScope? = null
-    private var cues: List<SubtitleCue> = emptyList()
+    var cues: List<SubtitleCue> = emptyList()
+        private set
     private var lastShownIndex: Int = -1
     private var speedMultiplier: Double = 1.0
     private var primaryCues: List<Cue> = emptyList()
+
+    var onActiveCueChanged: ((Int, SubtitleCue?) -> Unit)? = null
 
     val isActive: Boolean get() = scope != null && scope?.isActive == true
 
@@ -128,10 +131,19 @@ class DualSubtitleSyncEngine(
         if (index < 0 || index >= cues.size) {
             secondarySubtitleView.setCues(emptyList())
             lastShownIndex = -1
+            onActiveCueChanged?.invoke(-1, null)
         } else {
             secondarySubtitleView.setCues(cues[index].toExoCues(primaryCues))
             lastShownIndex = index
+            onActiveCueChanged?.invoke(index, cues[index])
         }
+    }
+
+    fun getActiveSecondaryCueText(): String? {
+        if (lastShownIndex >= 0 && lastShownIndex < cues.size) {
+            return cues[lastShownIndex].text
+        }
+        return null
     }
 
     private fun calculateInterval(): Long {

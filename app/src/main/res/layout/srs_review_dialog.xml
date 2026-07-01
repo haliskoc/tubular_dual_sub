@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/queue_background_color"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:text="SRS Review"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:id="@+id/textViewProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:textColor="?attr/colorAccent"
+                android:textSize="14sp"
+                android:text="0/0" />
+        </RelativeLayout>
+
+        <org.schabi.newpipe.views.NewPipeTextView
+            android:id="@+id/textViewWord"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:text="Word" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/buttonShowAnswer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Answer"
+            android:textColor="@android:color/white"
+            android:backgroundTint="?attr/colorAccent"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:id="@+id/layoutAnswerDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginBottom="16dp" />
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Çeviri:"
+                android:textColor="?attr/colorAccent"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:id="@+id/textViewTranslation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:layout_marginBottom="12dp"
+                android:text="Translation" />
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bağlam:"
+                android:textColor="?attr/colorAccent"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:id="@+id/textViewSentence"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:italic="true"
+                android:layout_marginBottom="12dp"
+                android:text="Context sentence" />
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:id="@+id/textViewVideoLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorAccent"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="🎬 Play Segment" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutRatingButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="8dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonAgain"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Again"
+                android:textSize="11sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#d32f2f"
+                android:layout_margin="2dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonHard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Hard"
+                android:textSize="11sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#f57c00"
+                android:layout_margin="2dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonGood"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Good"
+                android:textSize="11sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#388e3c"
+                android:layout_margin="2dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonEasy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Easy"
+                android:textSize="11sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#1976d2"
+                android:layout_margin="2dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

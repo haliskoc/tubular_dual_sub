@@ -311,6 +311,13 @@ class MainPlayerGestureListener(
         return true
     }
 
+    override fun onLongPress(e: MotionEvent) {
+        if (DEBUG) {
+            Log.d(TAG, "onLongPress called with e = [$e]")
+        }
+        playerUi.onLongPress(e)
+    }
+
     override fun getDisplayPortion(e: MotionEvent): DisplayPortion {
         return when {
             e.x < binding.root.width *

@@ -45,6 +45,7 @@ public final class SettingsResourceRegistry {
         add(SponsorBlockSettingsFragment.class, R.xml.sponsor_block_settings);
         add(SponsorBlockCategoriesSettingsFragment.class, R.xml.sponsor_block_category_settings);
         add(ReturnYouTubeDislikeSettingsFragment.class, R.xml.return_youtube_dislikes_settings);
+        add(SrsSettingsFragment.class, R.xml.srs_settings);
     }
 
     private SettingRegistryEntry add(

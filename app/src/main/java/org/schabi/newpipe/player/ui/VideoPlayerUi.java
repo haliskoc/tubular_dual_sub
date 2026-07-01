@@ -29,6 +29,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -150,6 +151,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     private PopupMenu secondCaptionPopupMenu;
     private DualSubtitleSyncEngine secondarySyncEngine;
     private List<Cue> currentPrimaryCues = java.util.Collections.emptyList();
+    protected org.schabi.newpipe.player.transcript.TranscriptAdapter transcriptAdapter;
+    protected boolean isTranscriptVisible = false;
+    protected org.schabi.newpipe.local.srs.WordRepository wordRepository;
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -1509,6 +1513,114 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.secondarySubtitleView.setApplyEmbeddedStyles(
                 captionStyle == CaptionStyleCompat.DEFAULT);
         binding.secondarySubtitleView.setStyle(captionStyle);
+        setupTranscript();
+    }
+
+    private void setupTranscript() {
+        transcriptAdapter = new org.schabi.newpipe.player.transcript.TranscriptAdapter(positionMs -> {
+            if (player != null) {
+                player.getExoPlayer().seekTo(positionMs);
+            }
+            return kotlin.Unit.INSTANCE;
+        });
+
+        org.schabi.newpipe.NewPipeDatabase database = org.schabi.newpipe.NewPipeDatabase.getInstance(context);
+        wordRepository = new org.schabi.newpipe.local.srs.WordRepository(database.wordCardDAO());
+
+        binding.transcriptSearchEditText.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (transcriptAdapter != null) {
+                    transcriptAdapter.getFilter().filter(s);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+    }
+
+    @Override
+    public void onLongPress(@NonNull final MotionEvent e) {
+        if (secondarySyncEngine == null) return;
+        final String text = secondarySyncEngine.getActiveSecondaryCueText();
+        if (text == null || text.trim().isEmpty()) {
+            Toast.makeText(context, "No active subtitle line to select words from.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String[] words = text.replaceAll("[\\p{Punct}&&[^']]", " ").split("\\s+");
+        final java.util.ArrayList<String> cleanWords = new java.util.ArrayList<>();
+        for (String w : words) {
+            final String trimmed = w.trim();
+            if (!trimmed.isEmpty() && trimmed.length() > 1 && !cleanWords.contains(trimmed)) {
+                cleanWords.add(trimmed);
+            }
+        }
+
+        if (cleanWords.isEmpty()) {
+            Toast.makeText(context, "No words found in active subtitle.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String[] items = cleanWords.toArray(new String[0]);
+        new androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle("Select word to save:")
+                .setItems(items, (dialog, which) -> {
+                    final String selectedWord = items[which];
+                    saveWordCard(selectedWord, text);
+                })
+                .show();
+    }
+
+    private void saveWordCard(final String word, final String sentence) {
+        if (wordRepository == null) return;
+
+        String title = "Video";
+        String url = "";
+        String uploader = "";
+        if (player != null && player.getPlayQueue() != null && player.getPlayQueue().getItem() != null) {
+            title = player.getPlayQueue().getItem().getTitle();
+            url = player.getPlayQueue().getItem().getUrl();
+            uploader = player.getPlayQueue().getItem().getUploaderName();
+        }
+
+        final String finalTitle = title;
+        final String finalUrl = url;
+        final String finalUploader = uploader;
+        final long currentPosition = player != null ? player.getExoPlayer().getCurrentPosition() : 0;
+
+        io.reactivex.rxjava3.core.Single.fromCallable(() -> {
+            final android.content.SharedPreferences prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
+            final String apiKey = prefs.getString("srs_deepl_api_key", "");
+            String translation = null;
+            if (!apiKey.trim().isEmpty()) {
+                final org.schabi.newpipe.local.srs.TranslationService translationService = 
+                        new org.schabi.newpipe.local.srs.TranslationService(apiKey);
+                translation = translationService.translate(word, "tr");
+            }
+            
+            return wordRepository.addCard(
+                    word,
+                    sentence,
+                    translation,
+                    finalTitle,
+                    finalUrl,
+                    finalUploader,
+                    currentPosition,
+                    "en"
+            );
+        })
+        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+        .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+        .subscribe(cardId -> {
+            Toast.makeText(context, String.format(context.getString(R.string.srs_card_added), word), Toast.LENGTH_SHORT).show();
+        }, throwable -> {
+            Toast.makeText(context, R.string.srs_card_add_failed, Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void buildSecondaryCaptionMenu(@Nullable final StreamInfo streamInfo) {
@@ -1677,7 +1789,34 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
         secondarySyncEngine.onPrimaryCuesChanged(currentPrimaryCues);
         if (cues != null && !cues.isEmpty()) {
+            secondarySyncEngine.setOnActiveCueChanged((index, cue) -> {
+                if (transcriptAdapter != null) {
+                    if (cue != null) {
+                        transcriptAdapter.setActivePosition(cue.startMs);
+                        if (isTranscriptVisible && binding.itemsList.getAdapter() == transcriptAdapter) {
+                            int activeIndex = transcriptAdapter.getActiveIndex();
+                            if (activeIndex >= 0) {
+                                binding.itemsList.scrollToPosition(activeIndex);
+                            }
+                        }
+                    } else {
+                        transcriptAdapter.setActivePosition(-1L);
+                    }
+                }
+                return kotlin.Unit.INSTANCE;
+            });
+
+            java.util.ArrayList<org.schabi.newpipe.player.transcript.TranscriptItem> items = new java.util.ArrayList<>();
+            for (SubtitleCue cue : cues) {
+                items.add(new org.schabi.newpipe.player.transcript.TranscriptItem(cue.startMs, cue.endMs, cue.text));
+            }
+            if (transcriptAdapter != null) {
+                transcriptAdapter.setItems(items);
+            }
+            binding.transcriptButton.setVisibility(View.VISIBLE);
             secondarySyncEngine.start(cues);
+        } else {
+            binding.transcriptButton.setVisibility(View.GONE);
         }
     }
 
@@ -1687,6 +1826,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
         player.setSelectedSecondaryLanguage(""); // None
         binding.secondCaptionTextView.setText(R.string.second_caption_none);
+        binding.transcriptButton.setVisibility(View.GONE);
+        if (isTranscriptVisible) {
+            closeItemsList();
+        }
     }
 
     private void updateSecondaryCaptionLabel(@NonNull final String languageTag) {
@@ -1705,6 +1848,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (secondarySyncEngine != null) {
             secondarySyncEngine.onSeekProcessed();
         }
+    }
+
+    public void onLongPress(@NonNull final MotionEvent e) {
     }
 
     //endregion

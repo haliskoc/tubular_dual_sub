@@ -1022,4 +1022,30 @@
     <string name="return_youtube_dislike_privacy_policy_text">ReturnYouTubeDislike Security FAQ</string>
     <string name="return_youtube_dislike_home_page_url">https://returnyoutubedislike.com/</string>
     <string name="return_youtube_dislike_security_faq_url">https://www.returnyoutubedislike.com/faq/</string>
+
+    <!-- Transcript & SRS Strings -->
+    <string name="transcript">Transcript</string>
+    <string name="search_in_transcript">Search in transcript...</string>
+    <string name="srs_title">SRS Word Learning</string>
+    <string name="srs_summary">Manage Spaced Repetition word cards and Anki integration</string>
+    <string name="srs_translation_options">SRS Translation Options</string>
+    <string name="srs_deepl_api_key">DeepL API Key</string>
+    <string name="srs_deepl_api_key_summary">Enter your DeepL API key to translate saved words</string>
+    <string name="srs_review_options">SRS Review Options</string>
+    <string name="srs_cards_per_day">New cards per day</string>
+    <string name="srs_ankiconnect_url">AnkiConnect URL</string>
+    <string name="srs_ankiconnect_url_summary">Default: http://localhost:8765</string>
+    <string name="srs_start_review">Start Review</string>
+    <string name="srs_export_apkg">Export to Anki (.apkg)</string>
+    <string name="srs_sync_ankiconnect">Sync with AnkiConnect</string>
+    <string name="srs_delete_all">Delete all cards</string>
+    <string name="srs_delete_all_summary">Permanently delete all SRS cards from database</string>
+    <string name="srs_delete_all_confirm_title">Delete All Cards?</string>
+    <string name="srs_delete_all_confirm_message">Are you sure you want to permanently delete all saved word cards? This cannot be undone.</string>
+    <string name="srs_sync_success">Synchronized successfully with Anki!</string>
+    <string name="srs_sync_failed">Failed to sync with Anki. Please ensure Anki is open with AnkiConnect enabled.</string>
+    <string name="srs_export_success">APKG exported successfully!</string>
+    <string name="srs_export_failed">Failed to export APKG file.</string>
+    <string name="srs_card_added">Card added to SRS: %s</string>
+    <string name="srs_card_add_failed">Failed to add card.</string>
 </resources>

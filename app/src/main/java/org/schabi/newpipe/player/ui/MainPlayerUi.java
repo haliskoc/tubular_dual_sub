@@ -167,6 +167,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         }));
         binding.queueButton.setOnClickListener(v -> onQueueClicked());
         binding.segmentsButton.setOnClickListener(v -> onSegmentsClicked());
+        binding.transcriptButton.setOnClickListener(v -> onTranscriptClicked());
 
         binding.addToPlaylistButton.setOnClickListener(v ->
                 getParentActivity().map(FragmentActivity::getSupportFragmentManager)
@@ -200,6 +201,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
         binding.queueButton.setOnClickListener(null);
         binding.segmentsButton.setOnClickListener(null);
+        binding.transcriptButton.setOnClickListener(null);
         binding.addToPlaylistButton.setOnClickListener(null);
 
         context.getContentResolver().unregisterContentObserver(settingsContentObserver);
@@ -608,6 +610,9 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     private void onQueueClicked() {
         isQueueVisible = true;
+        areSegmentsVisible = false;
+        isTranscriptVisible = false;
+        binding.transcriptSearchLayout.setVisibility(View.GONE);
 
         hideSystemUIIfNeeded();
         buildQueue();
@@ -649,6 +654,9 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     private void onSegmentsClicked() {
         areSegmentsVisible = true;
+        isQueueVisible = false;
+        isTranscriptVisible = false;
+        binding.transcriptSearchLayout.setVisibility(View.GONE);
 
         hideSystemUIIfNeeded();
         buildSegments();
@@ -688,14 +696,61 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         binding.itemsListClose.setOnClickListener(view -> closeItemsList());
     }
 
+    private void onTranscriptClicked() {
+        isTranscriptVisible = true;
+        isQueueVisible = false;
+        areSegmentsVisible = false;
+
+        hideSystemUIIfNeeded();
+        buildTranscript();
+
+        binding.itemsListHeaderTitle.setVisibility(View.VISIBLE);
+        binding.itemsListHeaderTitle.setText(R.string.transcript);
+        binding.itemsListHeaderDuration.setVisibility(View.GONE);
+        binding.shuffleButton.setVisibility(View.GONE);
+        binding.repeatButton.setVisibility(View.GONE);
+        binding.addToPlaylistButton.setVisibility(View.GONE);
+
+        hideControls(0, 0);
+        binding.itemsListPanel.requestFocus();
+        animate(binding.itemsListPanel, true, DEFAULT_CONTROLS_DURATION,
+                AnimationType.SLIDE_AND_ALPHA);
+
+        if (transcriptAdapter != null) {
+            int activeIndex = transcriptAdapter.getActiveIndex();
+            if (activeIndex >= 0) {
+                binding.itemsList.scrollToPosition(activeIndex);
+            }
+        }
+    }
+
+    private void buildTranscript() {
+        binding.itemsList.setAdapter(transcriptAdapter);
+        binding.itemsList.setClickable(true);
+        binding.itemsList.setLongClickable(true);
+
+        binding.itemsList.clearOnScrollListeners();
+        if (itemTouchHelper != null) {
+            itemTouchHelper.attachToRecyclerView(null);
+        }
+
+        binding.transcriptSearchLayout.setVisibility(View.VISIBLE);
+        binding.shuffleButton.setVisibility(View.GONE);
+        binding.repeatButton.setVisibility(View.GONE);
+        binding.addToPlaylistButton.setVisibility(View.GONE);
+        binding.itemsListClose.setOnClickListener(view -> closeItemsList());
+    }
+
     public void closeItemsList() {
-        if (isQueueVisible || areSegmentsVisible) {
+        if (isQueueVisible || areSegmentsVisible || isTranscriptVisible) {
             isQueueVisible = false;
             areSegmentsVisible = false;
+            isTranscriptVisible = false;
 
             if (itemTouchHelper != null) {
                 itemTouchHelper.attachToRecyclerView(null);
             }
+            binding.transcriptSearchLayout.setVisibility(View.GONE);
 
             animate(binding.itemsListPanel, false, DEFAULT_CONTROLS_DURATION,
                     AnimationType.SLIDE_AND_ALPHA, 0, () ->
@@ -837,7 +892,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     @Override
     protected boolean isAnyListViewOpen() {
-        return isQueueVisible || areSegmentsVisible;
+        return isQueueVisible || areSegmentsVisible || isTranscriptVisible;
     }
 
     @Override

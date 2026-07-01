@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="SRS Translation Options">
+        <EditTextPreference
+            android:key="srs_deepl_api_key"
+            android:title="DeepL API Key"
+            android:summary="Enter your DeepL API key to translate saved words"
+            android:inputType="textPassword"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="SRS Review Options">
+        <EditTextPreference
+            android:key="srs_cards_per_day"
+            android:title="New cards per day"
+            android:defaultValue="20"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Anki Integration">
+        <EditTextPreference
+            android:key="srs_ankiconnect_url"
+            android:title="AnkiConnect URL"
+            android:summary="Default: http://localhost:8765"
+            android:defaultValue="http://localhost:8765"
+            android:inputType="textUri"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="SRS Actions">
+        <Preference
+            android:key="srs_start_review"
+            android:title="Start Review"
+            android:summary="Start reviewing your due word cards" />
+
+        <Preference
+            android:key="srs_export_apkg"
+            android:title="Export to Anki (.apkg)"
+            android:summary="Create an offline Anki package file" />
+
+        <Preference
+            android:key="srs_sync_ankiconnect"
+            android:title="Sync with AnkiConnect"
+            android:summary="Push local cards to your active Anki instance" />
+
+        <Preference
+            android:key="srs_delete_all"
+            android:title="Delete all cards"
+            android:summary="Permanently delete all SRS cards from database" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
