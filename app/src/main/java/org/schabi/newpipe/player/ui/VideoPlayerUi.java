@@ -149,6 +149,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     private PopupMenu captionPopupMenu;
     private PopupMenu secondCaptionPopupMenu;
     private DualSubtitleSyncEngine secondarySyncEngine;
+    private List<Cue> currentPrimaryCues = java.util.Collections.emptyList();
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -1472,7 +1473,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     @Override
     public void onCues(@NonNull final List<Cue> cues) {
         super.onCues(cues);
+        this.currentPrimaryCues = cues;
         binding.subtitleView.setCues(cues);
+        if (secondarySyncEngine != null) {
+            secondarySyncEngine.onPrimaryCuesChanged(cues);
+        }
     }
 
     private void setupSubtitleView() {
@@ -1670,6 +1675,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             secondarySyncEngine = new DualSubtitleSyncEngine(
                     player.getExoPlayer(), binding.secondarySubtitleView);
         }
+        secondarySyncEngine.onPrimaryCuesChanged(currentPrimaryCues);
         if (cues != null && !cues.isEmpty()) {
             secondarySyncEngine.start(cues);
         }

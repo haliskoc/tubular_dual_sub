@@ -25,8 +25,16 @@ class DualSubtitleSyncEngine(
     private var cues: List<SubtitleCue> = emptyList()
     private var lastShownIndex: Int = -1
     private var speedMultiplier: Double = 1.0
+    private var primaryCues: List<Cue> = emptyList()
 
     val isActive: Boolean get() = scope != null && scope?.isActive == true
+
+    fun onPrimaryCuesChanged(cues: List<Cue>) {
+        primaryCues = cues
+        if (isActive && lastShownIndex != -1) {
+            updateView(lastShownIndex, force = true)
+        }
+    }
 
     fun start(subtitleCues: List<SubtitleCue>) {
         stop()
@@ -114,14 +122,14 @@ class DualSubtitleSyncEngine(
         }
     }
 
-    private fun updateView(index: Int) {
-        if (index == lastShownIndex) return
+    private fun updateView(index: Int, force: Boolean = false) {
+        if (index == lastShownIndex && !force) return
 
         if (index < 0 || index >= cues.size) {
             secondarySubtitleView.setCues(emptyList())
             lastShownIndex = -1
         } else {
-            secondarySubtitleView.setCues(cues[index].toExoCues())
+            secondarySubtitleView.setCues(cues[index].toExoCues(primaryCues))
             lastShownIndex = index
         }
     }
@@ -131,14 +139,27 @@ class DualSubtitleSyncEngine(
     }
 }
 
-fun SubtitleCue.toExoCues(): List<Cue> = listOf(
-    Cue.Builder()
-        .setText(text)
-        .setLine(0.73f, Cue.LINE_TYPE_FRACTION)
-        .setPosition(0.5f)
-        .setPositionAnchor(Cue.ANCHOR_TYPE_MIDDLE)
-        .setTextAlignment(android.text.Layout.Alignment.ALIGN_CENTER)
-        .setLineAnchor(Cue.ANCHOR_TYPE_MIDDLE)
-        .setSize(0.9f)
-        .build()
-)
+fun SubtitleCue.toExoCues(primaryCues: List<Cue>): List<Cue> {
+    val totalLines = primaryCues.sumOf { cue ->
+        val text = cue.text
+        if (text == null) 0 else text.count { it == '\n' } + 1
+    }
+
+    val linePosition = if (totalLines == 0) {
+        0.85f
+    } else {
+        0.81f - (totalLines * 0.08f)
+    }
+
+    return listOf(
+        Cue.Builder()
+            .setText(text)
+            .setLine(linePosition, Cue.LINE_TYPE_FRACTION)
+            .setPosition(0.5f)
+            .setPositionAnchor(Cue.ANCHOR_TYPE_MIDDLE)
+            .setTextAlignment(android.text.Layout.Alignment.ALIGN_CENTER)
+            .setLineAnchor(Cue.ANCHOR_TYPE_MIDDLE)
+            .setSize(0.9f)
+            .build()
+    )
+}
