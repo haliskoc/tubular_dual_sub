@@ -25,14 +25,14 @@ import org.schabi.newpipe.database.playlist.dao.PlaylistStreamDAO
 import org.schabi.newpipe.database.playlist.model.PlaylistEntity
 import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity
 import org.schabi.newpipe.database.playlist.model.PlaylistStreamEntity
+import org.schabi.newpipe.database.srs.WordCardDAO
+import org.schabi.newpipe.database.srs.WordCardEntity
 import org.schabi.newpipe.database.stream.dao.StreamDAO
 import org.schabi.newpipe.database.stream.dao.StreamStateDAO
 import org.schabi.newpipe.database.stream.model.StreamEntity
 import org.schabi.newpipe.database.stream.model.StreamStateEntity
 import org.schabi.newpipe.database.subscription.SubscriptionDAO
 import org.schabi.newpipe.database.subscription.SubscriptionEntity
-import org.schabi.newpipe.database.srs.WordCardDAO
-import org.schabi.newpipe.database.srs.WordCardEntity
 
 @TypeConverters(Converters::class)
 @Database(

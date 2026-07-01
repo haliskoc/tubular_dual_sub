@@ -14,14 +14,14 @@ object ApkgExporter {
                 val translation = card.translation ?: ""
                 val context = card.sentence
                 val source = "${card.videoTitle ?: ""} (${card.channelName ?: ""})"
-                
+
                 val front = card.word
                 val back = "$translation<br><br><b>Context:</b> $context<br><b>Source:</b> $source"
-                
+
                 // Escape tabs and newlines for Anki import compatibility
                 val escapedFront = front.replace("\t", " ").replace("\n", "<br>")
                 val escapedBack = back.replace("\t", " ").replace("\n", "<br>")
-                
+
                 writer.write("$escapedFront\t$escapedBack\n")
             }
         }

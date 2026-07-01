@@ -14,7 +14,7 @@ class TranslationService(private val apiKey: String) {
      */
     fun translate(text: String, targetLang: String): String? {
         if (apiKey.trim().isEmpty()) return null
-        
+
         val url = "https://api-free.deepl.com/v2/translate"
         val request = Request.Builder()
             .url(url)

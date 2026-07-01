@@ -19,9 +19,12 @@ class AnkiConnectClient(private val baseUrl: String = "http://localhost:8765") {
         val requestJson = JSONObject().apply {
             put("action", "createDeck")
             put("version", 6)
-            put("params", JSONObject().apply {
-                put("deck", deckName)
-            })
+            put(
+                "params",
+                JSONObject().apply {
+                    put("deck", deckName)
+                }
+            )
         }
         val request = Request.Builder()
             .url(baseUrl)
@@ -52,17 +55,26 @@ class AnkiConnectClient(private val baseUrl: String = "http://localhost:8765") {
         val requestJson = JSONObject().apply {
             put("action", "addNote")
             put("version", 6)
-            put("params", JSONObject().apply {
-                put("note", JSONObject().apply {
-                    put("deckName", deckName)
-                    put("modelName", "Basic")
-                    put("fields", JSONObject().apply {
-                        put("Front", word)
-                        put("Back", "$translation\n\nContext: $sentence\n\nSource: $videoTitle")
-                    })
-                    put("tags", JSONArray(tags))
-                })
-            })
+            put(
+                "params",
+                JSONObject().apply {
+                    put(
+                        "note",
+                        JSONObject().apply {
+                            put("deckName", deckName)
+                            put("modelName", "Basic")
+                            put(
+                                "fields",
+                                JSONObject().apply {
+                                    put("Front", word)
+                                    put("Back", "$translation\n\nContext: $sentence\n\nSource: $videoTitle")
+                                }
+                            )
+                            put("tags", JSONArray(tags))
+                        }
+                    )
+                }
+            )
         }
 
         val request = Request.Builder()

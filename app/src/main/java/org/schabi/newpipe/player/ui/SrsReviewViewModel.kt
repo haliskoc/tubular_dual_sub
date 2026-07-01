@@ -54,18 +54,18 @@ class SrsReviewViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun review(quality: Int) {
         val card = _currentCard.value ?: return
-        
+
         val disposable = io.reactivex.rxjava3.core.Completable.fromAction {
             repository.reviewCard(card, quality)
         }
-        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe({
-            currentIndex++
-            updateCurrentCard()
-        }, {
-            // Log error or ignore
-        })
+            .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                currentIndex++
+                updateCurrentCard()
+            }, {
+                // Log error or ignore
+            })
         disposables.add(disposable)
     }
 

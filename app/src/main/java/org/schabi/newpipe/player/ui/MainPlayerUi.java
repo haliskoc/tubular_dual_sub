@@ -97,6 +97,9 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     private StreamSegmentAdapter segmentAdapter;
     private boolean isQueueVisible = false;
     private boolean areSegmentsVisible = false;
+    private boolean isTranscriptVisible = false;
+    private org.schabi.newpipe.player.transcript.TranscriptAdapter transcriptAdapter;
+    private org.schabi.newpipe.local.srs.WordRepository wordRepository;
 
     // fullscreen player
     private ItemTouchHelper itemTouchHelper;
@@ -110,6 +113,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     public MainPlayerUi(@NonNull final Player player,
                         @NonNull final PlayerBinding playerBinding) {
         super(player, playerBinding);
+        setupTranscript();
     }
 
     /**
@@ -717,7 +721,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                 AnimationType.SLIDE_AND_ALPHA);
 
         if (transcriptAdapter != null) {
-            int activeIndex = transcriptAdapter.getActiveIndex();
+            final int activeIndex = transcriptAdapter.getActiveIndex();
             if (activeIndex >= 0) {
                 binding.itemsList.scrollToPosition(activeIndex);
             }
@@ -762,6 +766,198 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
             // clear focus, otherwise a white rectangle remains on top of the player
             binding.itemsListClose.clearFocus();
             binding.playPauseButton.requestFocus();
+        }
+    }
+
+    private void setupTranscript() {
+        transcriptAdapter = new org.schabi.newpipe.player.transcript.TranscriptAdapter(
+                (final Long positionMs) -> {
+                    if (player != null) {
+                        player.getExoPlayer().seekTo(positionMs);
+                    }
+                    return kotlin.Unit.INSTANCE;
+                });
+
+        final org.schabi.newpipe.NewPipeDatabase database =
+                org.schabi.newpipe.NewPipeDatabase.getInstance(context);
+        wordRepository = new org.schabi.newpipe.local.srs.WordRepository(
+                database.wordCardDAO());
+
+        binding.transcriptSearchEditText.addTextChangedListener(
+                new android.text.TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(
+                            final CharSequence s,
+                            final int start,
+                            final int count,
+                            final int after) {
+                    }
+
+                    @Override
+                    public void onTextChanged(
+                            final CharSequence s,
+                            final int start,
+                            final int before,
+                            final int count) {
+                        if (transcriptAdapter != null) {
+                            transcriptAdapter.getFilter().filter(s);
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(final android.text.Editable s) {
+                    }
+                });
+    }
+
+    public void onLongPress(@NonNull final android.view.MotionEvent e) {
+        if (secondarySyncEngine == null) {
+            return;
+        }
+        final String text = secondarySyncEngine.getActiveSecondaryCueText();
+        if (text == null || text.trim().isEmpty()) {
+            android.widget.Toast.makeText(context,
+                    "No active subtitle line to select words from.",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String[] words = text.replaceAll("[\\p{Punct}&&[^']]", " ")
+                .split("\\s+");
+        final java.util.ArrayList<String> cleanWords = new java.util.ArrayList<>();
+        for (final String w : words) {
+            final String trimmed = w.trim();
+            if (!trimmed.isEmpty() && trimmed.length() > 1
+                    && !cleanWords.contains(trimmed)) {
+                cleanWords.add(trimmed);
+            }
+        }
+
+        if (cleanWords.isEmpty()) {
+            android.widget.Toast.makeText(context,
+                    "No words found in active subtitle.",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String[] items = cleanWords.toArray(new String[0]);
+        new androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle("Select word to save:")
+                .setItems(items, (final android.content.DialogInterface dialog,
+                                   final int which) -> {
+                    final String selectedWord = items[which];
+                    saveWordCard(selectedWord, text);
+                })
+                .show();
+    }
+
+    private void saveWordCard(final String word, final String sentence) {
+        if (wordRepository == null) {
+            return;
+        }
+
+        String title = "Video";
+        String url = "";
+        String uploader = "";
+        if (player != null && player.getPlayQueue() != null
+                && player.getPlayQueue().getItem() != null) {
+            title = player.getPlayQueue().getItem().getTitle();
+            url = player.getPlayQueue().getItem().getUrl();
+            uploader = player.getPlayQueue().getItem().getUploaderName();
+        }
+
+        final String finalTitle = title;
+        final String finalUrl = url;
+        final String finalUploader = uploader;
+        final long currentPosition = player != null
+                ? player.getExoPlayer().getCurrentPosition() : 0;
+
+        io.reactivex.rxjava3.core.Single.fromCallable(() -> {
+            final android.content.SharedPreferences prefs =
+                    androidx.preference.PreferenceManager
+                            .getDefaultSharedPreferences(context);
+            final String apiKey = prefs.getString("srs_deepl_api_key", "");
+            String translation = null;
+            if (!apiKey.trim().isEmpty()) {
+                final org.schabi.newpipe.local.srs.TranslationService translationService =
+                        new org.schabi.newpipe.local.srs.TranslationService(apiKey);
+                translation = translationService.translate(word, "tr");
+            }
+
+            return wordRepository.addCard(
+                    word,
+                    sentence,
+                    translation,
+                    finalTitle,
+                    finalUrl,
+                    finalUploader,
+                    currentPosition,
+                    "en"
+            );
+        })
+        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+        .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+        .subscribe((final Long cardId) -> {
+            android.widget.Toast.makeText(context,
+                    String.format(context.getString(R.string.srs_card_added), word),
+                    android.widget.Toast.LENGTH_SHORT).show();
+        }, (final Throwable throwable) -> {
+            android.widget.Toast.makeText(context, R.string.srs_card_add_failed,
+                    android.widget.Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    @Override
+    protected void startSecondarySyncEngine(
+            @Nullable final java.util.List<
+                    org.schabi.newpipe.player.subtitle.SubtitleCue> cues) {
+        super.startSecondarySyncEngine(cues);
+        if (secondarySyncEngine == null) {
+            return;
+        }
+
+        if (cues != null && !cues.isEmpty()) {
+            secondarySyncEngine.setOnActiveCueChanged((final Integer index,
+                    final org.schabi.newpipe.player.subtitle.SubtitleCue cue) -> {
+                if (transcriptAdapter != null) {
+                    if (cue != null) {
+                        transcriptAdapter.setActivePosition(cue.startMs);
+                        if (isTranscriptVisible
+                                && binding.itemsList.getAdapter() == transcriptAdapter) {
+                            final int activeIndex = transcriptAdapter.getActiveIndex();
+                            if (activeIndex >= 0) {
+                                binding.itemsList.scrollToPosition(activeIndex);
+                            }
+                        }
+                    } else {
+                        transcriptAdapter.setActivePosition(-1L);
+                    }
+                }
+                return kotlin.Unit.INSTANCE;
+            });
+
+            final java.util.ArrayList<
+                    org.schabi.newpipe.player.transcript.TranscriptItem> items =
+                    new java.util.ArrayList<>();
+            for (final org.schabi.newpipe.player.subtitle.SubtitleCue cue : cues) {
+                items.add(new org.schabi.newpipe.player.transcript.TranscriptItem(
+                        cue.startMs, cue.endMs, cue.text));
+            }
+            if (transcriptAdapter != null) {
+                transcriptAdapter.setItems(items);
+            }
+            binding.transcriptButton.setVisibility(View.VISIBLE);
+        } else {
+            binding.transcriptButton.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void stopSecondarySubtitle() {
+        super.stopSecondarySubtitle();
+        binding.transcriptButton.setVisibility(View.GONE);
+        if (isTranscriptVisible) {
+            closeItemsList();
         }
     }
 

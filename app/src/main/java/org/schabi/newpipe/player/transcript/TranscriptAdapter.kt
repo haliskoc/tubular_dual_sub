@@ -9,8 +9,8 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import androidx.recyclerview.widget.RecyclerView
-import org.schabi.newpipe.databinding.TranscriptItemBinding
 import java.util.Locale
+import org.schabi.newpipe.databinding.TranscriptItemBinding
 
 class TranscriptAdapter(
     private val onItemClick: (Long) -> Unit
@@ -99,7 +99,7 @@ class TranscriptAdapter(
 
         fun bind(item: TranscriptItem, isActive: Boolean, query: String) {
             binding.timestamp.text = item.formattedTimestamp
-            
+
             // Highlight search query
             val text = item.text
             if (query.isNotEmpty() && text.lowercase(Locale.getDefault()).contains(query.lowercase(Locale.getDefault()))) {

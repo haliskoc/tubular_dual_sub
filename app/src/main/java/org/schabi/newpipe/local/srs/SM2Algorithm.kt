@@ -31,6 +31,7 @@ object SM2Algorithm {
                 newInterval = 1
                 newEF = maxOf(1.3f, newEF - 0.20f)
             }
+
             2 -> { // Hard
                 newReps++
                 newInterval = when (newReps) {
@@ -40,6 +41,7 @@ object SM2Algorithm {
                 }
                 newEF = maxOf(1.3f, newEF - 0.15f)
             }
+
             3 -> { // Good
                 newReps++
                 newInterval = when (newReps) {
@@ -48,6 +50,7 @@ object SM2Algorithm {
                     else -> (interval * newEF).toInt()
                 }
             }
+
             4 -> { // Easy
                 newReps++
                 newInterval = when (newReps) {
@@ -57,6 +60,7 @@ object SM2Algorithm {
                 }
                 newEF += 0.15f
             }
+
             else -> throw IllegalArgumentException("Quality must be 0, 2, 3, or 4")
         }
 

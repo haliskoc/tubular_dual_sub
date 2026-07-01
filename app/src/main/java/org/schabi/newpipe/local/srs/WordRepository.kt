@@ -2,9 +2,9 @@ package org.schabi.newpipe.local.srs
 
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.time.OffsetDateTime
 import org.schabi.newpipe.database.srs.WordCardDAO
 import org.schabi.newpipe.database.srs.WordCardEntity
-import java.time.OffsetDateTime
 
 class WordRepository(private val dao: WordCardDAO) {
 

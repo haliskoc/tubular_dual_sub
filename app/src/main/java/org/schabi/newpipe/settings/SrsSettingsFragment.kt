@@ -9,6 +9,7 @@ import androidx.preference.Preference
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.io.IOException
 import org.schabi.newpipe.NewPipeDatabase
 import org.schabi.newpipe.R
 import org.schabi.newpipe.database.srs.WordCardEntity
@@ -16,7 +17,6 @@ import org.schabi.newpipe.local.srs.AnkiConnectClient
 import org.schabi.newpipe.local.srs.ApkgExporter
 import org.schabi.newpipe.local.srs.WordRepository
 import org.schabi.newpipe.player.ui.SrsReviewDialogFragment
-import java.io.IOException
 
 class SrsSettingsFragment : BasePreferenceFragment() {
 
