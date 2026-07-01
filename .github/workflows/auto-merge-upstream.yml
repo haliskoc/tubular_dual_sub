@@ -1,0 +1,47 @@
+name: "Auto Merge Upstream"
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run every day at midnight (UTC)
+  workflow_dispatch: # Allows manual trigger from Actions tab
+
+jobs:
+  merge-upstream:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: feature/dual-subtitles
+          fetch-depth: 0
+
+      - name: Configure Git Credentials
+        run: |
+          git config --local user.name "GitHub Actions"
+          git config --local user.email "actions@github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/polymorphicshade/Tubular.git
+          git fetch upstream master
+
+      - name: Check for new updates
+        id: check
+        run: |
+          # Count how many commits upstream/master has that are not in our branch
+          COMMITS_AHEAD=$(git log HEAD..upstream/master --oneline | wc -l)
+          echo "commits_ahead=${COMMITS_AHEAD}" >> $GITHUB_OUTPUT
+          echo "Found ${COMMITS_AHEAD} new commits in upstream/master"
+
+      - name: Merge upstream/master
+        if: steps.check.outputs.commits_ahead > 0
+        run: |
+          git merge upstream/master -m "chore: auto-merge upstream/master updates"
+
+      - name: Push changes
+        if: steps.check.outputs.commits_ahead > 0
+        run: |
+          git push origin feature/dual-subtitles
