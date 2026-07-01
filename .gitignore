@@ -19,3 +19,5 @@ app/release/
 bin/
 .vscode/
 *.code-workspace
+build_apk/
+
