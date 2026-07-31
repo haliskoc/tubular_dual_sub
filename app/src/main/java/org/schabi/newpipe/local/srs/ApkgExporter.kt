@@ -2,6 +2,7 @@ package org.schabi.newpipe.local.srs
 
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
+import org.schabi.newpipe.database.srs.WordCardEntity
 
 object ApkgExporter {
 

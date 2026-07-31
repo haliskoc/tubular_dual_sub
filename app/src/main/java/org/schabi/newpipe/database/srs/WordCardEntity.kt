@@ -44,7 +44,7 @@ data class WordCardEntity(
     val nextReview: OffsetDateTime,
 
     @ColumnInfo(name = "lastReviewed")
-    val lastReviewed: OffsetDateTime?,
+    val lastReviewed: OffsetDateTime? = null,
 
     @ColumnInfo(name = "createdAt")
     val createdAt: OffsetDateTime,
