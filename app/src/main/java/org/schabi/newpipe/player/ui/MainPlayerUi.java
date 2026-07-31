@@ -778,7 +778,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                     return kotlin.Unit.INSTANCE;
                 });
 
-        final org.schabi.newpipe.NewPipeDatabase database =
+        final org.schabi.newpipe.database.AppDatabase database =
                 org.schabi.newpipe.NewPipeDatabase.getInstance(context);
         wordRepository = new org.schabi.newpipe.local.srs.WordRepository(
                 database.wordCardDAO());
@@ -863,7 +863,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                 && player.getPlayQueue().getItem() != null) {
             title = player.getPlayQueue().getItem().getTitle();
             url = player.getPlayQueue().getItem().getUrl();
-            uploader = player.getPlayQueue().getItem().getUploaderName();
+            uploader = player.getPlayQueue().getItem().getUploader();
         }
 
         final String finalTitle = title;

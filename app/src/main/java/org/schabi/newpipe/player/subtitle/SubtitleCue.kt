@@ -1,9 +1,9 @@
 package org.schabi.newpipe.player.subtitle
 
 data class SubtitleCue(
-    val startMs: Long,
-    val endMs: Long,
-    val text: String
+    @JvmField val startMs: Long,
+    @JvmField val endMs: Long,
+    @JvmField val text: String
 ) : Comparable<SubtitleCue> {
 
     override fun compareTo(other: SubtitleCue): Int = startMs.compareTo(other.startMs)
