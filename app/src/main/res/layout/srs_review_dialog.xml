@@ -101,7 +101,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:italic="true"
+                android:textStyle="italic"
                 android:layout_marginBottom="12dp"
                 android:text="Context sentence" />
 
